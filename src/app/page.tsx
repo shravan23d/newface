@@ -20,11 +20,11 @@ export default function Home() {
     <main className="min-h-screen bg-neutral-950 text-white">
       <section className="relative isolate overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(220,38,38,0.28),_transparent_34%),linear-gradient(135deg,_#111827_0%,_#020617_52%,_#1f2937_100%)]" />
-        <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
+        <header className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <Link href="/" className="text-xl font-bold tracking-tight text-white">
             EmergencyFace
           </Link>
-          <nav className="flex flex-wrap justify-end gap-2 text-sm">
+          <nav className="grid w-full grid-cols-2 gap-2 text-sm sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
             <Link href="/scan" className="rounded-md border border-white/20 px-4 py-2 text-white hover:bg-white/10">
               Scan
             </Link>

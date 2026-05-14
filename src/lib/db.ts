@@ -1,7 +1,11 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const SEED_DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = process.env.VERCEL
+  ? path.join(os.tmpdir(), 'emergency-face-tracker-data')
+  : SEED_DATA_DIR;
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const EMERGENCY_FILE = path.join(DATA_DIR, 'emergency.json');
 
@@ -32,6 +36,14 @@ export interface EmergencyDetails {
 function readJson<T>(filePath: string, defaultValue: T): T {
   try {
     if (!fs.existsSync(filePath)) {
+      const seedFilePath = path.join(SEED_DATA_DIR, path.basename(filePath));
+      if (seedFilePath !== filePath && fs.existsSync(seedFilePath)) {
+        const seedData = fs.readFileSync(seedFilePath, 'utf-8');
+        const parsedSeed = JSON.parse(seedData) as T;
+        writeJson(filePath, parsedSeed);
+        return parsedSeed;
+      }
+
       writeJson(filePath, defaultValue);
       return defaultValue;
     }
