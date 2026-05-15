@@ -112,7 +112,7 @@ export default function RegisterPage() {
             <span className={`rounded-full px-3 py-1 text-xs font-semibold ${faceDetected ? 'bg-emerald-50 text-emerald-700' : 'bg-neutral-100 text-neutral-700'}`}>{statusText}</span>
           </div>
 
-          <div className="relative aspect-video overflow-hidden rounded-lg bg-neutral-950">
+          <div className="relative aspect-[4/6] overflow-hidden rounded-lg bg-neutral-950 sm:aspect-video">
             <video ref={videoRef} muted playsInline className="h-full w-full object-cover" />
             {status !== 'ready' && (
               <div className="absolute inset-0 grid place-items-center bg-black/70 px-4 text-center text-sm font-medium text-white">

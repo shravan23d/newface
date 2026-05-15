@@ -2,11 +2,12 @@ const MODEL_BASE_URL = 'https://cdn.jsdelivr.net/gh/vladmandic/face-api/model/';
 
 type FaceApi = {
   nets: {
-    ssdMobilenetv1: { loadFromUri: (url: string) => Promise<void> };
+    tinyFaceDetector: { loadFromUri: (url: string) => Promise<void> };
     faceLandmark68Net: { loadFromUri: (url: string) => Promise<void> };
     faceRecognitionNet: { loadFromUri: (url: string) => Promise<void> };
   };
-  detectSingleFace: (input: HTMLVideoElement) => {
+  TinyFaceDetectorOptions: new (options: { inputSize: number; scoreThreshold: number }) => unknown;
+  detectSingleFace: (input: HTMLVideoElement, options?: unknown) => {
     withFaceLandmarks: () => {
       withFaceDescriptor: () => Promise<FaceDetectionResult | undefined>;
     };
@@ -32,8 +33,8 @@ export async function loadFaceApiModels(): Promise<void> {
 
   console.log('Loading face detection models from:', MODEL_BASE_URL);
 
-  await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_BASE_URL);
-  console.log('SSD MobileNet loaded');
+  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_BASE_URL);
+  console.log('Tiny Face Detector loaded');
 
   await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_BASE_URL);
   console.log('Face Landmark loaded');
@@ -48,8 +49,13 @@ export function detectFace(videoEl: HTMLVideoElement): Promise<FaceDetectionResu
     throw new Error('face-api.js is not ready yet.');
   }
 
+  const options = new faceapi.TinyFaceDetectorOptions({
+    inputSize: 416,
+    scoreThreshold: 0.35,
+  });
+
   return faceapi
-    .detectSingleFace(videoEl)
+    .detectSingleFace(videoEl, options)
     .withFaceLandmarks()
     .withFaceDescriptor();
 }

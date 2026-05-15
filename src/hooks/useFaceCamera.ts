@@ -65,7 +65,12 @@ export function useFaceCamera(enabled: boolean) {
         setStatus('starting-camera');
         addLog('Requesting camera access');
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 540 } },
+          video: {
+            facingMode: 'user',
+            width: { ideal: 720 },
+            height: { ideal: 1080 },
+            aspectRatio: { ideal: 0.6667 },
+          },
         });
 
         if (cancelled || !videoRef.current) {
@@ -99,7 +104,7 @@ export function useFaceCamera(enabled: boolean) {
             const message = detectError instanceof Error ? detectError.message : 'Detection failed';
             addLog(message);
           }
-        }, 650);
+        }, 450);
       } catch (startError) {
         const rawMessage = startError instanceof Error ? startError.message : 'Camera setup failed';
         const message = rawMessage.toLowerCase().includes('permission') || rawMessage.toLowerCase().includes('denied')

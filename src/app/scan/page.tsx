@@ -78,7 +78,7 @@ export default function ScanPage() {
             </span>
           </div>
 
-          <div className="relative aspect-video overflow-hidden rounded-lg border border-white/10 bg-black shadow-2xl">
+          <div className="relative aspect-[4/6] overflow-hidden rounded-lg border border-white/10 bg-black shadow-2xl sm:aspect-video">
             <video ref={videoRef} muted playsInline className="h-full w-full object-cover" />
             {status !== 'ready' && (
               <div className="absolute inset-0 grid place-items-center bg-black/70 px-4 text-center font-medium">

@@ -89,7 +89,7 @@ export default function LoginPage() {
             </div>
           ) : (
             <div className="mt-6 rounded-lg border border-neutral-200 bg-neutral-950 p-3">
-              <div className="relative aspect-video overflow-hidden rounded-md">
+              <div className="relative aspect-[4/6] overflow-hidden rounded-md sm:aspect-video">
                 <video ref={videoRef} muted playsInline className="h-full w-full object-cover" />
                 {status !== 'ready' && <div className="absolute inset-0 grid place-items-center bg-black/70 text-sm font-medium text-white">Preparing camera</div>}
               </div>
