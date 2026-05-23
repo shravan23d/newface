@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const initialForm = {
+  age: '',
+  gender: '',
+  organDonor: '',
   bloodType: '',
   allergies: '',
   medicalConditions: '',
@@ -38,6 +41,9 @@ export default function EmergencyPage() {
       if (data.emergencyDetails) {
         setFormData({
           bloodType: data.emergencyDetails.bloodType || '',
+          age: data.emergencyDetails.age || '',
+          gender: data.emergencyDetails.gender || '',
+          organDonor: data.emergencyDetails.organDonor || '',
           allergies: data.emergencyDetails.allergies || '',
           medicalConditions: data.emergencyDetails.medicalConditions || '',
           emergencyContactName: data.emergencyDetails.emergencyContactName || '',
@@ -122,12 +128,34 @@ export default function EmergencyPage() {
 
           <div className="mt-6 grid gap-5 md:grid-cols-2">
             <label className="block text-sm font-medium">
+              Age
+              <input type="number" min="0" max="120" value={formData.age} onChange={(e) => updateField('age', e.target.value)} className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100" />
+            </label>
+            <label className="block text-sm font-medium">
+              Gender
+              <select value={formData.gender} onChange={(e) => updateField('gender', e.target.value)} className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100">
+                <option value="">Select gender</option>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+                <option value="Non-binary">Non-binary</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+            </label>
+            <label className="block text-sm font-medium">
               Blood type
               <select value={formData.bloodType} onChange={(e) => updateField('bloodType', e.target.value)} className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100">
                 {bloodTypes.map((type) => <option key={type} value={type}>{type || 'Select blood type'}</option>)}
               </select>
             </label>
             <label className="block text-sm font-medium">
+              Organ donor
+              <select value={formData.organDonor} onChange={(e) => updateField('organDonor', e.target.value)} className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100">
+                <option value="">Unknown</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </label>
+            <label className="block text-sm font-medium md:col-span-2">
               Address or pickup location
               <input value={formData.address} onChange={(e) => updateField('address', e.target.value)} className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100" />
             </label>

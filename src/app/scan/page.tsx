@@ -7,6 +7,9 @@ import { useFaceCamera } from '@/hooks/useFaceCamera';
 interface ScanResult {
   user: { name: string; phone: string };
   emergencyDetails: {
+    age: string;
+    gender: string;
+    organDonor: string;
     bloodType: string;
     allergies: string;
     medicalConditions: string;
@@ -16,6 +19,10 @@ interface ScanResult {
     address: string;
     notes: string;
   } | null;
+  match: {
+    confidence: number;
+    distance: number;
+  };
 }
 
 export default function ScanPage() {
@@ -24,6 +31,7 @@ export default function ScanPage() {
   const [error, setError] = useState('');
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [nightMode, setNightMode] = useState(true);
 
   const handleScan = async () => {
     setError('');
@@ -54,14 +62,22 @@ export default function ScanPage() {
 
   const details = scanResult?.emergencyDetails;
 
+  const criticalAlerts = [
+    details?.allergies ? `Allergy: ${details.allergies}` : '',
+    details?.medicalConditions ? details.medicalConditions : '',
+  ].filter(Boolean);
+
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
-      <header className="border-b border-white/10 bg-neutral-950">
+    <main className={`min-h-screen ${nightMode ? 'bg-neutral-950 text-white' : 'bg-red-50 text-neutral-950'}`}>
+      <header className={`border-b ${nightMode ? 'border-white/10 bg-neutral-950' : 'border-red-100 bg-white'}`}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-          <Link href="/" className="text-xl font-bold text-white">EmergencyFace</Link>
+          <Link href="/" className={`text-xl font-bold ${nightMode ? 'text-white' : 'text-red-600'}`}>EmergencyFace</Link>
           <div className="flex gap-2">
-            <Link href="/login" className="rounded-md px-4 py-2 text-sm font-semibold text-white/80 hover:bg-white/10">Login</Link>
-            <Link href="/register" className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-neutral-200">Register</Link>
+            <button onClick={() => setNightMode((value) => !value)} className={`rounded-md px-4 py-2 text-sm font-semibold ${nightMode ? 'bg-white/10 text-white' : 'bg-neutral-950 text-white'}`}>
+              {nightMode ? 'Day' : 'Night'}
+            </button>
+            <Link href="/login" className={`rounded-md px-4 py-2 text-sm font-semibold ${nightMode ? 'text-white/80 hover:bg-white/10' : 'text-neutral-700 hover:bg-red-100'}`}>Login</Link>
+            <Link href="/register" className={`rounded-md px-4 py-2 text-sm font-semibold ${nightMode ? 'bg-white text-neutral-950 hover:bg-neutral-200' : 'bg-red-600 text-white hover:bg-red-700'}`}>Register</Link>
           </div>
         </div>
       </header>
@@ -70,10 +86,10 @@ export default function ScanPage() {
         <div>
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-red-300">Emergency scanner</p>
+              <p className={`text-sm font-semibold uppercase tracking-wide ${nightMode ? 'text-red-300' : 'text-red-600'}`}>Emergency scanner</p>
               <h1 className="mt-2 text-3xl font-bold">Identify and retrieve details</h1>
             </div>
-            <span className={`rounded-full px-3 py-1 text-sm font-semibold ${camera.faceDetected ? 'bg-emerald-400/15 text-emerald-200' : 'bg-red-400/15 text-red-200'}`}>
+            <span className={`rounded-full px-3 py-1 text-sm font-semibold ${faceDetected ? 'bg-emerald-400/15 text-emerald-200' : 'bg-red-400/15 text-red-200'}`}>
               {faceDetected ? 'Face detected' : 'No face detected'}
             </span>
           </div>
@@ -112,37 +128,67 @@ export default function ScanPage() {
           )}
         </div>
 
-        <aside className="rounded-lg border border-white/10 bg-white p-5 text-neutral-950 shadow-2xl">
+        <aside className={`${scanResult ? 'overflow-hidden p-0' : 'p-5'} rounded-[28px] border border-white/10 bg-white text-neutral-950 shadow-2xl`}>
           {scanResult ? (
             <div>
-              <div className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-4">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-wide text-red-600">Matched profile</p>
-                  <h2 className="mt-1 text-3xl font-bold">{scanResult.user.name}</h2>
-                  <a href={`tel:${scanResult.user.phone}`} className="mt-2 inline-block font-semibold text-red-600 hover:underline">{scanResult.user.phone}</a>
-                </div>
-                <div className="rounded-md bg-red-50 px-4 py-3 text-center">
-                  <p className="text-xs text-red-700">Blood type</p>
-                  <p className="text-3xl font-bold text-red-700">{details?.bloodType || 'N/A'}</p>
+              <div className="bg-red-600 px-6 py-6 text-white">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex gap-4">
+                    <div className="grid h-14 w-14 place-items-center rounded-xl bg-white/15 text-2xl">+</div>
+                    <div>
+                      <p className="text-3xl font-black uppercase leading-tight tracking-wide">Emergency<br />Access</p>
+                      <p className="mt-1 font-mono text-sm uppercase text-red-100">Biometric match: {scanResult.match.confidence.toFixed(1)}%</p>
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setScanResult(null)} className="text-4xl leading-none text-white/70 hover:text-white">x</button>
                 </div>
               </div>
 
-              {details ? (
-                <div className="mt-5 space-y-4">
-                  <InfoBlock title="Allergies" value={details.allergies || 'None reported'} urgent />
-                  <InfoBlock title="Medical conditions" value={details.medicalConditions || 'None reported'} />
-                  <InfoBlock title="Address" value={details.address || 'Not provided'} />
-                  <div className="rounded-md border border-neutral-200 p-4">
-                    <p className="text-sm font-semibold text-neutral-500">Emergency contact</p>
-                    <p className="mt-1 text-lg font-bold">{details.emergencyContactName || 'Not provided'}</p>
-                    {details.emergencyContactPhone && <a href={`tel:${details.emergencyContactPhone}`} className="font-semibold text-red-600 hover:underline">{details.emergencyContactPhone}</a>}
-                    {details.emergencyContactRelation && <p className="text-sm text-neutral-500">{details.emergencyContactRelation}</p>}
+              <div className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="grid h-24 w-24 shrink-0 place-items-center rounded-2xl bg-red-50 text-5xl">!</div>
+                  <div>
+                    <h2 className="text-3xl font-black leading-tight text-slate-950">{scanResult.user.name}</h2>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {details?.age && <span className="rounded-md bg-slate-100 px-3 py-1 text-sm font-bold text-slate-600">{details.age} YRS</span>}
+                      {details?.gender && <span className="rounded-md bg-slate-100 px-3 py-1 text-sm font-bold uppercase text-slate-600">{details.gender}</span>}
+                    </div>
                   </div>
-                  {details.notes && <InfoBlock title="Notes" value={details.notes} />}
                 </div>
-              ) : (
-                <div className="mt-6 rounded-md border border-amber-200 bg-amber-50 p-4 text-amber-800">This user has not added emergency details yet.</div>
-              )}
+
+                <div className="mt-6 rounded-2xl border border-red-100 bg-red-50 p-5">
+                  <p className="font-black uppercase tracking-wide text-red-700">Critical alerts</p>
+                  <ul className="mt-3 list-disc space-y-2 pl-5 text-lg font-black uppercase text-red-800">
+                    {(criticalAlerts.length ? criticalAlerts : ['No critical alerts reported']).map((alert) => <li key={alert}>{alert}</li>)}
+                  </ul>
+                </div>
+
+                {details ? (
+                  <div className="mt-6 space-y-5">
+                    <div className="grid grid-cols-2 gap-4">
+                      <StatCard label="Blood type" value={details.bloodType || 'N/A'} />
+                      <StatCard label="Donor" value={details.organDonor || 'Unknown'} green={details.organDonor === 'Yes'} />
+                    </div>
+                    <div>
+                      <p className="mb-3 text-sm font-black uppercase tracking-wide text-slate-400">Emergency contacts</p>
+                      <div className="rounded-2xl bg-emerald-50 p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-lg font-black">{details.emergencyContactName || 'Not provided'} {details.emergencyContactRelation && `(${details.emergencyContactRelation})`}</p>
+                            <p className="text-slate-500">Primary Contact</p>
+                          </div>
+                          {details.emergencyContactPhone && <a href={`tel:${details.emergencyContactPhone}`} className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-black text-white">CALL</a>}
+                        </div>
+                      </div>
+                    </div>
+                    <InfoBlock title="Address" value={details.address || 'Not provided'} />
+                    {details.address && <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(details.address)}`} target="_blank" rel="noreferrer" className="block rounded-md border border-slate-200 px-4 py-3 text-center font-bold text-slate-700">Open address in Maps</a>}
+                    {details.notes && <InfoBlock title="Notes" value={details.notes} />}
+                  </div>
+                ) : (
+                  <div className="mt-6 rounded-md border border-amber-200 bg-amber-50 p-4 text-amber-800">This matched user has not added emergency details yet.</div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="grid min-h-[420px] place-items-center text-center">
@@ -156,6 +202,15 @@ export default function ScanPage() {
         </aside>
       </section>
     </main>
+  );
+}
+
+function StatCard({ label, value, green = false }: { label: string; value: string; green?: boolean }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
+      <p className="text-sm font-black uppercase tracking-wide text-slate-500">{label}</p>
+      <p className={`mt-3 text-3xl font-black ${green ? 'text-emerald-600' : 'text-slate-950'}`}>{value}</p>
+    </div>
   );
 }
 

@@ -22,6 +22,9 @@ export interface User {
 export interface EmergencyDetails {
   id: string;
   userId: string;
+  age: string;
+  gender: string;
+  organDonor: string;
   bloodType: string;
   allergies: string;
   medicalConditions: string;
@@ -135,22 +138,45 @@ export function upsertEmergencyDetails(details: Omit<EmergencyDetails, 'id' | 'u
   return emergencyDetails;
 }
 
-export function getUserByFaceDescriptor(faceDescriptor: number[], threshold: number = 0.6): User | undefined {
-  const users = getUsers();
-  let bestMatch: User | undefined;
-  let bestDistance = Infinity;
+export interface FaceMatch {
+  user: User;
+  distance: number;
+  confidence: number;
+}
 
-  for (const user of users) {
-    if (!user.faceDescriptor || user.faceDescriptor.length === 0) continue;
-    
-    const distance = euclideanDistance(faceDescriptor, user.faceDescriptor);
-    if (distance < threshold && distance < bestDistance) {
-      bestDistance = distance;
-      bestMatch = user;
-    }
+export function findFaceMatch(faceDescriptor: number[], threshold: number = 0.48, minMargin: number = 0.05): FaceMatch | undefined {
+  if (!Array.isArray(faceDescriptor) || faceDescriptor.length !== 128) {
+    return undefined;
   }
 
-  return bestMatch;
+  const users = getUsers();
+  const matches = users
+    .filter(user => user.faceDescriptor && user.faceDescriptor.length === faceDescriptor.length)
+    .map(user => ({
+      user,
+      distance: euclideanDistance(faceDescriptor, user.faceDescriptor),
+    }))
+    .sort((a, b) => a.distance - b.distance);
+
+  const bestMatch = matches[0];
+  const secondBest = matches[1];
+
+  if (!bestMatch || bestMatch.distance > threshold) {
+    return undefined;
+  }
+
+  if (secondBest && secondBest.distance - bestMatch.distance < minMargin) {
+    return undefined;
+  }
+
+  return {
+    ...bestMatch,
+    confidence: Math.max(0, Math.min(99.8, Math.round((1 - bestMatch.distance / threshold) * 1000) / 10)),
+  };
+}
+
+export function getUserByFaceDescriptor(faceDescriptor: number[]): User | undefined {
+  return findFaceMatch(faceDescriptor)?.user;
 }
 
 function euclideanDistance(a: number[], b: number[]): number {

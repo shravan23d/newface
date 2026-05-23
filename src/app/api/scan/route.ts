@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByFaceDescriptor, getEmergencyByUserId } from '@/lib/db';
+import { findFaceMatch, getEmergencyByUserId } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,15 +13,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = getUserByFaceDescriptor(faceDescriptor);
+    const match = findFaceMatch(faceDescriptor);
 
-    if (!user) {
+    if (!match) {
       return NextResponse.json(
-        { error: 'No matching user found' },
+        { error: 'Face is not registered or match is not confident enough' },
         { status: 404 }
       );
     }
 
+    const user = match.user;
     const emergencyDetails = getEmergencyByUserId(user.id);
 
     return NextResponse.json({
@@ -30,6 +31,10 @@ export async function POST(request: NextRequest) {
         phone: user.phone,
       },
       emergencyDetails: emergencyDetails || null,
+      match: {
+        confidence: match.confidence,
+        distance: Number(match.distance.toFixed(4)),
+      },
     });
   } catch (error) {
     console.error('Scan error:', error);

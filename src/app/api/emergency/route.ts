@@ -22,6 +22,9 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const {
+    age,
+    gender,
+    organDonor,
     bloodType,
     allergies,
     medicalConditions,
@@ -34,6 +37,9 @@ export async function POST(request: NextRequest) {
 
   const details = upsertEmergencyDetails({
     userId: session.userId,
+    age: age || '',
+    gender: gender || '',
+    organDonor: organDonor || '',
     bloodType: bloodType || '',
     allergies: allergies || '',
     medicalConditions: medicalConditions || '',
